@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>连不上服务器 · 峡谷同行</title>
+<style>
+  :root {
+    --ink: #0A1428;
+    --panel: #12263F;
+    --gold: #C8AA6E;
+    --teal: #0AC8B9;
+    --ember: #D4574E;
+    --text: #F0E6D2;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    background-image: radial-gradient(720px 420px at 50% -10%, rgba(212, 87, 78, .10), transparent 70%);
+  }
+
+  main { width: 100%; max-width: 500px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 22px;
+    padding: 6px 12px;
+    font-size: 12.5px;
+    letter-spacing: .4px;
+    color: var(--ember);
+    border: 1px solid rgba(212, 87, 78, .4);
+    border-radius: 100px;
+  }
+
+  .badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ember);
+  }
+
+  h1 {
+    margin: 0 0 12px;
+    font-size: 25px;
+    font-weight: 600;
+  }
+
+  .lede {
+    margin: 0 0 26px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: rgba(240, 230, 210, .72);
+  }
+
+  .facts {
+    padding: 16px 18px;
+    background: var(--panel);
+    border-left: 2px solid rgba(200, 170, 110, .5);
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    line-height: 2;
+    color: rgba(240, 230, 210, .62);
+  }
+
+  .facts b {
+    display: inline-block;
+    min-width: 66px;
+    font-weight: 400;
+    color: rgba(240, 230, 210, .38);
+  }
+
+  .facts span {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12.5px;
+    word-break: break-all;
+    color: var(--text);
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  button {
+    flex: 1;
+    padding: 12px;
+    font-size: 14.5px;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: filter .15s, transform .06s;
+  }
+
+  button:active { transform: translateY(1px); }
+  button:hover { filter: brightness(1.08); }
+
+  button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 3px;
+  }
+
+  .primary {
+    color: #0A1428;
+    background: var(--gold);
+    border: 0;
+  }
+
+  .ghost {
+    color: var(--text);
+    background: transparent;
+    border: 1px solid rgba(200, 170, 110, .3);
+  }
+
+  .tips {
+    margin: 26px 0 0;
+    padding: 0 0 0 18px;
+    font-size: 13px;
+    line-height: 2;
+    color: rgba(240, 230, 210, .45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="badge">未连接</div>
+
+  <h1>连不上服务器</h1>
+  <p class="lede">
+    页面没能从服务器加载出来。本机数据都还在，恢复连接后重新打开就能接着用。
+  </p>
+
+  <div class="facts">
+    <b>地址</b><span id="url">—</span><br>
+    <b>原因</b><span id="desc">—</span>
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="retry" type="button">重试</button>
+    <button class="ghost" id="change" type="button">修改地址</button>
+  </div>
+
+  <ol class="tips">
+    <li>确认服务器上的后端和 nginx 都在运行。</li>
+    <li>用同一台电脑的浏览器打开这个地址，看能不能访问。</li>
+    <li>如果服务器换了 IP，在这里改一下即可。</li>
+  </ol>
+</main>
+
+<script>
+  const api = window.lolDesktop
+  const params = new URLSearchParams(location.search)
+
+  const urlText = params.get('url') || '—'
+  const desc = params.get('desc') || ''
+  const code = params.get('code') || ''
+
+  document.getElementById('url').textContent = urlText
+
+  // Chromium 的错误描述是英文的，挑常见的翻一下，剩下的原样显示
+  const KNOWN = [
+    [/ERR_CONNECTION_REFUSED/i, '服务器拒绝连接（端口没开或服务没启动）'],
+    [/ERR_NAME_NOT_RESOLVED/i, '域名解析失败'],
+    [/ERR_INTERNET_DISCONNECTED/i, '本机网络已断开'],
+    [/ERR_CONNECTION_TIMED_OUT/i, '连接超时'],
+    [/ERR_ADDRESS_UNREACHABLE/i, '地址不可达'],
+  ]
+  let human = desc
+  for (const [pattern, label] of KNOWN) {
+    if (pattern.test(desc) || pattern.test(urlText)) {
+      human = label
+      break
+    }
+  }
+  document.getElementById('desc').textContent = human || (code ? '错误码 ' + code : '未知')
+
+  document.getElementById('retry').addEventListener('click', () => {
+    if (api) api.reload()
+  })
+
+  document.getElementById('change').addEventListener('click', () => {
+    // 借设置页改地址：它保存后会自己跳回服务器
+    location.replace('setup.html')
+  })
+</script>
+</body>
+</html>

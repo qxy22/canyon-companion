@@ -1,0 +1,44 @@
+# ==========================================================================
+# LOL 战绩交友系统 · 后端 systemd 单元
+#
+# 放到 /etc/systemd/system/lol-server.service，然后：
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now lol-server
+#   sudo journalctl -u lol-server -f      # 看实时日志
+# ==========================================================================
+
+[Unit]
+Description=LOL Matchmaking Server
+# 两个依赖都要等：MySQL 没起来 JPA 会连不上直接退出，
+# Redis 没起来不会崩（会自动降级查库），但索引得等它好了才建得起来
+After=network-online.target mysqld.service redis.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lol
+Group=lol
+# 工作目录放在 jar 的同级：app.upload.dir 配的是绝对路径时不影响，
+# 但日志和临时文件都会落在这里
+WorkingDirectory=/opt/lol
+
+# 端口写死在命令行参数上，不用环境变量。
+# Spring Boot 的宽松绑定会把环境变量 SERVER_PORT 也认作 server.port，
+# 万一机器上别的东西注入了同名变量，服务就会绑到错误的端口上。
+# 命令行参数的优先级最高，不会被覆盖。
+ExecStart=/usr/bin/java -Xms512m -Xmx1024m \
+    -jar /opt/lol/lol-server.jar \
+    --server.port=8080 \
+    --spring.profiles.active=prod
+
+# Spring Boot 收到 SIGTERM 后正常退出码是 143，不声明的话 systemd 会当成失败
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+
+# 安全性：服务账号拿不到 shell，家目录和 /tmp 私有化
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

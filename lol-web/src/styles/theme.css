@@ -1,0 +1,242 @@
+/* ==========================================================================
+   设计令牌 · 峡谷主题
+   来源：国服英雄联盟客户端的视觉语言（深蓝墨底 / 金铜描边 / 青蓝数据高光）
+   色板只有 6 个具名色，其中金色与青色严格分工：
+     金 = 结构（主按钮、焦点环、段位路标）   青 = 数据（在线、数值、链接）
+   其余一切靠羊皮纸白的透明度阶，不引入第 7 个颜色。
+   ========================================================================== */
+
+:root {
+  /* 底色三级，明度差刻意压小，靠 1px 描边而不是色块分组 */
+  --ink: #0a1428;          /* 峡谷墨 · 页面底 */
+  --panel: #12263f;        /* 卡面 */
+  --panel-hi: #1a3552;     /* 悬停 / 浮层 */
+  --line: #26456b;         /* 分隔线 */
+  --line-soft: rgba(38, 69, 107, 0.5);
+
+  /* 两色分工 */
+  --gold: #c8aa6e;         /* 海克斯金 · 结构 */
+  --gold-dim: #8a7548;
+  --teal: #0ac8b9;         /* 峡谷青 · 数据 */
+  --ember: #d4574e;        /* 赤铜 · 失败 / 危险 */
+
+  /* 文字只用羊皮纸白 + 透明度阶（对比度已按 12:1 / 7:1 / 4.5:1 校过） */
+  --text: #f0e6d2;
+  --text-dim: rgba(240, 230, 210, 0.72);
+  --text-mute: rgba(240, 230, 210, 0.55);
+
+  /* 字号阶梯 */
+  --fs-display: 28px;
+  --fs-title: 20px;
+  --fs-body: 15px;
+  --fs-small: 13px;
+  --fs-micro: 12px;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  /* 不加载 Web 字体：答辩现场可能断网，且中文字体包体 >10MB。
+     个性改由字重阶梯、字距、等宽数字承担。 */
+  --font-sans: "PingFang SC", "HarmonyOS Sans SC", "Microsoft YaHei UI",
+    "Microsoft YaHei", "Source Han Sans SC", "Noto Sans SC", system-ui,
+    -apple-system, "Segoe UI", sans-serif;
+  --font-num: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+}
+
+/* --------------------------------------------------------------------------
+   全局 reset
+   修掉浏览器默认 body{margin:8px} —— 它会让 min-height:100vh 的登录页
+   多出 16px 的纵向滚动条。
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* 数字一律等宽对齐，战绩列不会跳动 */
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 栏目标签：小号 + 字距，用来给每一块内容一句"这是干什么的" */
+.eyebrow {
+  font-size: var(--fs-micro);
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+}
+
+/* --------------------------------------------------------------------------
+   质量底线（不声张地满足）
+   -------------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Element Plus 深色变量覆盖
+   先引入 element-plus/theme-chalk/dark/css-vars.css，再在此处只改需要改的。
+   -------------------------------------------------------------------------- */
+html.dark {
+  --el-color-primary: #c8aa6e;
+  --el-color-primary-light-3: #d7bf8f;
+  --el-color-primary-light-5: #e3d5b6;
+  --el-color-primary-light-7: #efe9da;
+  --el-color-primary-light-8: #f4f1e8;
+  --el-color-primary-light-9: #faf8f4;
+  --el-color-primary-dark-2: #a08858;
+
+  --el-color-success: #0ac8b9;
+  --el-color-success-light-3: #4bd8cd;
+  --el-color-success-light-5: #85e5dd;
+  --el-color-success-light-7: #bff2ee;
+  --el-color-success-light-8: #d7f7f4;
+  --el-color-success-light-9: #eefbfa;
+  --el-color-success-dark-2: #089e92;
+
+  --el-color-danger: #d4574e;
+  --el-color-danger-light-3: #e0847d;
+  --el-color-danger-light-5: #e9aba6;
+  --el-color-danger-light-7: #f2d1ce;
+  --el-color-danger-light-8: #f6e0de;
+  --el-color-danger-light-9: #fbf0ef;
+  --el-color-danger-dark-2: #a8453e;
+
+  --el-color-warning: #dda05a;
+  --el-color-warning-light-3: #e7b882;
+  --el-color-warning-light-5: #efd0aa;
+  --el-color-warning-light-7: #f6e7d3;
+  --el-color-warning-light-8: #f9efe2;
+  --el-color-warning-light-9: #fcf7f0;
+  --el-color-warning-dark-2: #b18048;
+
+  --el-color-info: #7e93ae;
+  --el-color-info-light-3: #a5b4c8;
+  --el-color-info-light-5: #c3cdda;
+  --el-color-info-light-7: #e0e6ec;
+  --el-color-info-light-8: #ecf0f4;
+  --el-color-info-light-9: #f5f7f9;
+  --el-color-info-dark-2: #65768b;
+
+  --el-bg-color: #12263f;
+  --el-bg-color-page: #0a1428;
+  --el-bg-color-overlay: #1a3552;
+
+  --el-text-color-primary: #f0e6d2;
+  --el-text-color-regular: rgba(240, 230, 210, 0.72);
+  --el-text-color-secondary: rgba(240, 230, 210, 0.55);
+  --el-text-color-placeholder: rgba(240, 230, 210, 0.4);
+  --el-text-color-disabled: rgba(240, 230, 210, 0.3);
+
+  --el-border-color: #26456b;
+  --el-border-color-light: rgba(38, 69, 107, 0.7);
+  --el-border-color-lighter: rgba(38, 69, 107, 0.5);
+  --el-border-color-extra-light: rgba(38, 69, 107, 0.35);
+
+  --el-fill-color: #1a3552;
+  --el-fill-color-light: rgba(26, 53, 82, 0.6);
+  --el-fill-color-blank: #12263f;
+
+  --el-mask-color: rgba(10, 20, 40, 0.75);
+  --el-border-radius-base: 8px;
+}
+
+/* 卡片：统一成一档，去掉 Element 默认的阴影和浅底 */
+.el-card {
+  --el-card-bg-color: var(--panel);
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+}
+
+/* 主舞台卡片：中间那一栏用。一道 2px 金顶边把层级抬起来 ——
+   用金而不是新颜色，因为它本来就是「结构」色，抬层级正是结构的活。 */
+.el-card.is-lead {
+  border-top: 2px solid var(--gold) !important;
+}
+
+/* 主栏内部也放宽一档（旁栏 16px）：它是主舞台，呼吸感比省地方重要 */
+.el-card.is-lead .el-card__body {
+  padding: 20px;
+}
+
+.el-card__body {
+  padding: 18px;
+}
+
+/* 表格化的行：用分隔线分组，不用色块 */
+.el-divider {
+  --el-border-color: var(--line-soft);
+  margin: 16px 0;
+}
+
+/* 主按钮：全站唯一成片的金色，克制使用 */
+.el-button--primary {
+  --el-button-text-color: #0a1428;
+  font-weight: 600;
+}
+
+.el-button + .el-button {
+  margin-left: 8px;
+}

@@ -1,0 +1,60 @@
+{
+  "name": "lol-desktop",
+  "version": "1.0.3",
+  "private": true,
+  "description": "峡谷同行 —— LOL 战绩查询与交友系统桌面端",
+  "main": "src/main.js",
+  "author": "LOL 战绩查询与交友系统",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "cross-env ELECTRON_BUILDER_BINARIES_MIRROR=https://registry.npmmirror.com/-/binary/electron-builder-binaries/ electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.lol.desktop",
+    "productName": "峡谷同行",
+    "copyright": "Copyright © 2026",
+    "electronDownload": {
+      "mirror": "https://registry.npmmirror.com/-/binary/electron/"
+    },
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "峡谷同行",
+      "installerLanguages": [
+        "zh_CN"
+      ],
+      "language": "2052"
+    },
+    "compression": "maximum"
+  }
+}

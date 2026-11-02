@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>连接到服务器 · 峡谷同行</title>
+<style>
+  /* 与 lol-web/src/styles/theme.css 同一套令牌，桌面端和网页端看起来是同一个产品 */
+  :root {
+    --ink: #0A1428;
+    --panel: #12263F;
+    --gold: #C8AA6E;
+    --teal: #0AC8B9;
+    --ember: #D4574E;
+    --text: #F0E6D2;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    /* 一点点顶部径向光，让纯色底不平 */
+    background-image: radial-gradient(720px 420px at 50% -10%, rgba(200, 170, 110, .10), transparent 70%);
+  }
+
+  main { width: 100%; max-width: 460px; }
+
+  .mark {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 26px;
+    border: 2px solid var(--gold);
+    transform: rotate(45deg);
+    position: relative;
+  }
+  .mark::after {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    background: var(--teal);
+  }
+
+  h1 {
+    margin: 0 0 10px;
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: .5px;
+  }
+
+  .sub {
+    margin: 0 0 30px;
+    font-size: 14px;
+    line-height: 1.75;
+    color: rgba(240, 230, 210, .72);
+  }
+
+  label {
+    display: block;
+    margin-bottom: 9px;
+    font-size: 13px;
+    color: rgba(240, 230, 210, .55);
+    letter-spacing: .3px;
+  }
+
+  input {
+    width: 100%;
+    padding: 13px 15px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid rgba(200, 170, 110, .22);
+    border-radius: 6px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  input::placeholder { color: rgba(240, 230, 210, .28); }
+
+  input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(200, 170, 110, .16);
+  }
+
+  .hint {
+    margin: 9px 0 0;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: rgba(240, 230, 210, .45);
+  }
+
+  code {
+    padding: 1px 5px;
+    border-radius: 3px;
+    background: rgba(240, 230, 210, .08);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 22px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    letter-spacing: .5px;
+    color: #0A1428;
+    background: var(--gold);
+    border: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: filter .15s, transform .06s;
+  }
+
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .55; cursor: default; }
+
+  button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 3px;
+  }
+
+  /* 次要动作（返回）：描边而非实底，别跟「连接」抢注意力 */
+  button.ghost {
+    margin-top: 10px;
+    color: var(--gold);
+    background: transparent;
+    border: 1px solid rgba(200, 170, 110, .38);
+    font-weight: 500;
+  }
+  button.ghost:hover:not(:disabled) { background: rgba(200, 170, 110, .08); }
+
+  .status {
+    min-height: 22px;
+    margin: 16px 0 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  .status.ok { color: var(--teal); }
+  .status.err { color: var(--ember); }
+
+  details {
+    margin-top: 30px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(200, 170, 110, .14);
+  }
+
+  summary {
+    font-size: 13px;
+    color: rgba(240, 230, 210, .55);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▸ "; color: var(--gold); }
+  details[open] summary::before { content: "▾ "; }
+
+  details > div { margin-top: 16px; }
+
+  /* 自检结果里的排查线索：给的是路径一类的原始信息，字要小、要能换行 */
+  .tried {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    font-size: 12px;
+    line-height: 1.75;
+    color: rgba(240, 230, 210, .42);
+    word-break: break-all;
+  }
+  .tried:empty { display: none; }
+  .tried li { margin-bottom: 2px; }
+
+  .hint strong { color: var(--gold); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="mark" aria-hidden="true"></div>
+
+  <h1>服务器地址</h1>
+  <p class="sub">
+    已内置默认服务器，装完打开就能用，这里一般不用改。
+  </p>
+
+  <form id="form" novalidate>
+    <label for="addr">服务器地址</label>
+    <input id="addr" type="text" placeholder="http://47.110.138.40" autocomplete="off" spellcheck="false">
+    <p class="hint">填 IP 或域名就行，端口默认 80。换服务器时才需要动这里。</p>
+
+    <button id="go" type="submit">连接</button>
+    <button id="back" class="ghost" type="button" hidden>返回，不改了</button>
+  </form>
+
+  <p id="status" class="status" role="status"></p>
+
+  <details>
+    <summary>游戏装在别的地方？（可选）</summary>
+    <div>
+      <label for="dir">英雄联盟安装目录</label>
+      <input id="dir" type="text" placeholder="D:\Games\英雄联盟" autocomplete="off" spellcheck="false">
+      <p class="hint">录入战绩时会自动查找客户端。自动找不到时，在这里指定目录即可。</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>读取不到战绩？先自检一下</summary>
+    <div>
+      <p class="hint">
+        录入战绩读的是<strong>这台电脑上</strong>的英雄联盟客户端：它必须已经启动，
+        并且<strong>登录了游戏账号</strong>。只开着 WeGame、停在登录页、
+        或者只开着「峡谷同行」本身，都读不到 —— 这三件事长得差不多，
+        报错却完全不同，所以先看这里的结果。
+      </p>
+      <button id="diag" class="ghost" type="button">检测本机客户端</button>
+      <p id="diagOut" class="status" role="status"></p>
+      <ul id="diagList" class="tried"></ul>
+    </div>
+  </details>
+</main>
+
+<script>
+  const form = document.getElementById('form')
+  const addr = document.getElementById('addr')
+  const dir = document.getElementById('dir')
+  const go = document.getElementById('go')
+  const back = document.getElementById('back')
+  const status = document.getElementById('status')
+
+  const api = window.lolDesktop
+
+  // 从菜单「设置服务器地址…」进来的才有退路；首次启动（没有地址）不许返回，会原地打转
+  const fromMenu = new URLSearchParams(location.search).get('from') === 'menu'
+
+  function say(text, kind) {
+    status.textContent = text || ''
+    status.className = 'status' + (kind ? ' ' + kind : '')
+  }
+
+  // 回显已保存的地址；键盘用户一进来就能直接改
+  ;(async () => {
+    if (!api) {
+      say('桌面端接口没加载成功，请重装应用。', 'err')
+      return
+    }
+    const cfg = await api.getConfig()
+    if (cfg.serverBase) addr.value = cfg.serverBase
+    if (cfg.lcuInstallDir) {
+      dir.value = cfg.lcuInstallDir
+      document.querySelector('details').open = true
+    }
+    if (fromMenu && cfg.serverBase) back.hidden = false
+    addr.focus()
+    addr.select()
+  })()
+
+  back.addEventListener('click', () => api.gotoServer())
+
+  // ---------------------------------------------------------------- 自检
+  //
+  // 「读不到战绩」在别人机器上有三种完全不同的成因（没开游戏 / 开了没登录 /
+  // 进程列表被安全软件挡住），光看一句报错分不出来。这里把主进程知道的都摊开，
+  // 让人能自己判断，也方便把结果原样发回来。
+  const diag = document.getElementById('diag')
+  const diagOut = document.getElementById('diagOut')
+  const diagList = document.getElementById('diagList')
+
+  function sayDiag(text, kind) {
+    diagOut.textContent = text || ''
+    diagOut.className = 'status' + (kind ? ' ' + kind : '')
+  }
+
+  function sourceText(source) {
+    if (source === 'process') return '客户端进程'
+    if (source === 'lockfile') return 'lockfile'
+    if (source === 'log') return '日志'
+    return '未知来源'
+  }
+
+  diag.addEventListener('click', async () => {
+    diag.disabled = true
+    diagList.innerHTML = ''
+    sayDiag('正在检测…（连不上会自动重试几轮，最多十几秒）')
+
+    const r = await api.probeLcu().catch(e => ({ ok: false, message: String((e && e.message) || e) }))
+
+    if (r.ok) {
+      const who = (r.summoner && r.summoner.name) || '(没读到名字)'
+      sayDiag(`读到了：${who}（端口 ${r.port}，凭证来自${sourceText(r.source)}）。可以回应用里点录入了。`, 'ok')
+    } else {
+      sayDiag(r.message || '检测失败', 'err')
+    }
+
+    for (const line of r.tried || []) {
+      const li = document.createElement('li')
+      li.textContent = line
+      diagList.appendChild(li)
+    }
+
+    diag.disabled = false
+  })
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault()
+    const value = addr.value.trim()
+    if (!value) {
+      say('请先填服务器地址。', 'err')
+      addr.focus()
+      return
+    }
+
+    go.disabled = true
+    say('正在连接…')
+
+    // 游戏目录跟着一起存，省得用户再进来一次
+    await api.setConfig({ serverBase: value, lcuInstallDir: dir.value.trim() })
+
+    const probe = await api.probeServer(value)
+    if (!probe.ok) {
+      say('连不上：' + (probe.message || '未知原因') + '。检查地址是否正确、服务是否在运行。', 'err')
+      go.disabled = false
+      addr.focus()
+      addr.select()
+      return
+    }
+
+    say('已连接，正在进入…', 'ok')
+    await api.gotoServer()
+  })
+</script>
+</body>
+</html>
